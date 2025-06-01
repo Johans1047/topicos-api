@@ -25,7 +25,6 @@ jobs:
         username: registry7401
         password: ${{ secrets.ACR_PASSWORD }}
 
-
     - name: Build and push frontend image
       run: |
         docker build -t {{ env.REGISTRY_NAME }}/{{ env.UI_IMAGE_NAME }}:latest --build-arg VITE_API_URL://topicosapi.westus.azurecontainer.io/ ./client
