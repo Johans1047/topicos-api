@@ -3,7 +3,7 @@ FROM node:22-alpine AS build
 WORKDIR /build
 
 COPY index.html package*.json tsconfig.json vite.config.ts eslint.config.js /build/
-COPY .env.production /build/
+COPY ./.env.production /build/
 COPY ./public /build/public
 COPY ./src /build/src
 
