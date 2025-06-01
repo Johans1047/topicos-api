@@ -10,8 +10,8 @@ import { ValidationPipe } from "@nestjs/common";
     app.enableCors();
     app.setGlobalPrefix("api");
 
-    //const host = process.env.HOST ?? "127.0.0.1";
-    const host = "topicosapi.westus.azurecontainer.io";
+    const host = process.env.HOST ?? "127.0.0.1";
+    //const host = "topicosapi.westus.azurecontainer.io";
     const port = process.env.PORT ?? 3000;
     
     await app.listen(port, () => console.log("Server is listening at http://%s:%d/", host, port));

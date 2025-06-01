@@ -29,10 +29,12 @@ jobs:
       id: vars
       run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-
     - name: Build and push frontend image
       run: |
-        docker build -t registry7401.azurecr.io/topicos-api-frontend:${{ steps.vars.outputs.tag }} --build-arg VITE_API_URL://topicosapi.westus.azurecontainer.io/ ./client
+        docker build \
+          -t registry7401.azurecr.io/topicos-api-frontend:${{ steps.vars.outputs.tag }} \
+          --build-arg VITE_API_URL:${{ env.VITE_API_URL }} \
+          ./client
         docker push registry7401.azurecr.io/topicos-api-frontend:${{ steps.vars.outputs.tag }}
 
     - name: Build and push backend image
