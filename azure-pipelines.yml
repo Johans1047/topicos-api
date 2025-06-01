@@ -1,0 +1,54 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+# Define en qué ramas se ejecuta automáticamente el pipeline
+trigger:
+  - main  # O la rama que uses
+
+# Define variables reutilizables
+variables:
+  uiImageName: topicos-api-frontend
+  apiImageName: topicos-api-backend
+
+# Organizar el pipeline en distintas etapas
+stages:
+  # Build de la app
+  - stage: Build
+    displayName: Build and Push Docker Image to the Azure Container Registry and Create an instance in the ACI
+    # Cada job es una unidad de trabajo que se ejecuta en un agente (puede ser un virtual machine)
+    jobs:
+      - job: DockerBuildJob
+        displayName: Build and Push
+        # Definir el tipo de agente
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        # Permite definir task, script o templates
+        steps:
+          # Construir y subir imagen FRONTEND
+          - task: Docker@2
+            displayName: Build and Push UI Image to ACR
+            inputs:
+              containerRegistry: 'registry7401'
+              repository: '$(uiImageName)'
+              command: 'buildAndPush'
+              Dockerfile: '**/client/Dockerfile'
+              tags: |
+                latest
+                $(Build.BuildId)
+
+          # Construir y subir imagen BACKEND
+          - task: Docker@2
+            displayName: Build and Push API Image to ACR
+            inputs:
+              containerRegistry: 'registry7401'
+              repository: '$(apiImageName)'
+              command: 'buildAndPush'
+              Dockerfile: '**/server/Dockerfile'
+              tags: |
+                latest
+                $(Build.BuildId)
+
+
