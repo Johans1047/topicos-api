@@ -1,0 +1,32 @@
+name: Build and Push to ACR
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY_NAME: registry7401.azurecr.io  # Cambia esto por tu registro ACR
+  UI_IMAGE_NAME: topicos-api-frontend
+  API_IMAGE_NAME: topicos-api-backend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Log in to Azure Container Registry
+      run: echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ env.REGISTRY_NAME }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+
+    - name: Build and push frontend image
+      run: |
+        docker build -t {{ env.REGISTRY_NAME }}/{{ env.UI_IMAGE_NAME }}:latest --build-arg VITE_API_URL://topicosapi.westus.azurecontainer.io/ ./client
+        docker push {{ env.REGISTRY_NAME }}/{{ env.UI_IMAGE_NAME }}:latest
+
+    - name: Build and push backend image
+      run: |
+        docker build -t ${{ env.REGISTRY_NAME }}/{{ env.API_IMAGE_NAME }}:latest ./server
+        docker push ${{ env.REGISTRY_NAME }}/{{ env.API_IMAGE_NAME }}:latest
