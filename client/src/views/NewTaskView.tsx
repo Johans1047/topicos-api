@@ -31,8 +31,8 @@ export default function NewTaskView(): React.JSX.Element {
     const saveTask = async () => {
         validateTask();
 
-        //const url = buildUrl(import.meta.env.VITE_API_URL!, "api/task");
-        const url = buildUrl("http://topicosapi.westus.azurecontainer.io:3000/", "api/task");
+        const url = buildUrl(import.meta.env.VITE_API_URL!, "api/task");
+        //const url = buildUrl("http://topicosapi.westus.azurecontainer.io:3000/", "api/task");
 
         const response = await fetch(url, {
             method: "POST",

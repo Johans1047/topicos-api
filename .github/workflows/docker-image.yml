@@ -5,33 +5,37 @@ on:
     branches:
       - main
 
-env:
-  REGISTRY_NAME: registry7401.azurecr.io  # Cambia esto por tu registro ACR
-  UI_IMAGE_NAME: topicos-api-frontend
-  API_IMAGE_NAME: topicos-api-backend
-
 jobs:
+  # Build and Push Docker Images
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+    #if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: testaction
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Login to Azure Container Registry
       uses: azure/docker-login@v1
       with:
-        login-server: ${{ env.REGISTRY_NAME }}
+        login-server: registry7401.azurecr.io
         username: registry7401
         password: ${{ secrets.ACR_PASSWORD }}
 
+    # Extrae los primeros 7 caracteres del GITHUB_SHA, que es el hash del commit actual (por ejemplo, a1b2c3d).
+    # Lo que se escribe en $GITHUB_OUTPUT puede ser usado en pasos posteriores mediante steps.<id>.outputs.<nombre>.
+    - name: Set image tag
+      id: vars
+      run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+
     - name: Build and push frontend image
       run: |
-        docker build -t registry7401.azurecr.io/topicos-api-frontend:latest --build-arg VITE_API_URL://topicosapi.westus.azurecontainer.io/ ./client
-        docker push registry7401.azurecr.io/topicos-api-frontend:latest
+        docker build -t registry7401.azurecr.io/topicos-api-frontend:${{ steps.vars.outputs.tag }} ./client
+        docker push registry7401.azurecr.io/topicos-api-frontend:${{ steps.vars.outputs.tag }}
 
     - name: Build and push backend image
       run: |
-        docker build -t registry7401.azurecr.io/topicos-api-backend:latest ./server
-        docker push registry7401.azurecr.io/topicos-api-backend:latest
+        docker build -t registry7401.azurecr.io/topicos-api-backend:${{ steps.vars.outputs.tag }} ./server
+        docker push registry7401.azurecr.io/topicos-api-backend:${{ steps.vars.outputs.tag }}

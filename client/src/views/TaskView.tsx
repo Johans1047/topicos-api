@@ -14,8 +14,8 @@ export default function TaskView(): React.JSX.Element {
     const [editing, setEditing] = useState<boolean>(false);
     useEffect(() => {
         const fetchTaskById = async () => {
-            //const url = buildUrl(import.meta.env.VITE_API_URL!, `api/task/${id}`);
-            const url = buildUrl("http://topicosapi.westus.azurecontainer.io:3000/", `api/task/${id}`);
+            const url = buildUrl(import.meta.env.VITE_API_URL!, `api/task/${id}`);
+            //const url = buildUrl("http://topicosapi.westus.azurecontainer.io:3000/", `api/task/${id}`);
             const response = await fetch(url, {
                 method: "GET",
             });
