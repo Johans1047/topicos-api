@@ -32,7 +32,7 @@ jobs:
 
     - name: Build and push frontend image
       run: |
-        docker build -t registry7401.azurecr.io/topicos-api-frontend:${{ steps.vars.outputs.tag }} ./client
+        docker build -t registry7401.azurecr.io/topicos-api-frontend:${{ steps.vars.outputs.tag }} --build-arg VITE_API_URL://topicosapi.westus.azurecontainer.io/ ./client
         docker push registry7401.azurecr.io/topicos-api-frontend:${{ steps.vars.outputs.tag }}
 
     - name: Build and push backend image
