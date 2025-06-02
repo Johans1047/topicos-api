@@ -41,3 +41,41 @@ jobs:
       run: |
         docker build -t registry7401.azurecr.io/topicos-api-backend:${{ steps.vars.outputs.tag }} ./server
         docker push registry7401.azurecr.io/topicos-api-backend:${{ steps.vars.outputs.tag }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: testaction
+
+    steps:
+    - name: Login to Azure
+      env:
+        AZURE_TOKEN: ${{ secrets.AZURE_TOKEN }}
+      run: |
+        echo $AZURE_TOKEN > token.txt
+        az login --federated-token "$(cat token.txt)" --username ${{ env.AZURE_USERNAME }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+      
+    # - name: Azure CLI Login
+    #   run: |
+    #     az login --service-principal \
+    #       --username "b377939b-b66e-44aa-a1fc-9fcbc3e949d7" \
+    #       --password ${{ secrets.AZURE_CLIENT_SECRET }} \
+    #       --tenant "f07b40ae-b60b-4e0f-bebe-afb42fc4dc69"
+    #     az account set --subscription "1ba5bfd7-03c0-4444-bd00-02abbd3b3cd9"
+
+    # - name: Azure Login
+    #   uses: azure/login@v1
+    #   with:
+    #     creds: ${{ secrets.AZURE_CREDENTIALS }}  # JSON obtenido desde el portal de Azure
+
+    - name: Deploy to Azure Container Instance
+      uses: azure/aci-deploy@v1
+      with:
+        resource-group: your-resource-group
+        name: frontend-instance
+        image: registry7401.azurecr.io/topicos-api-frontend:${{ needs.build-and-push.outputs.tag }}
+        dns-name-label: frontend-instance
+        location: westus
+        registry-login-server: registry7401.azurecr.io
+        registry-username: registry7401
+        registry-password: ${{ secrets.ACR_PASSWORD }}
