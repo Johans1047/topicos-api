@@ -27,7 +27,8 @@ jobs:
     # Lo que se escribe en $GITHUB_OUTPUT puede ser usado en pasos posteriores mediante steps.<id>.outputs.<nombre>.
     - name: Set image tag
       id: vars
-      run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+      # run: echo "tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT // funciona para crear diferentes tags por commit
+      run: echo "tag=latest" >> $GITHUB_OUTPUT # Usar 'latest' para modificar la ultima imagen en el ACR por defecto
 
     - name: Build and push frontend image
       run: |
@@ -42,18 +43,19 @@ jobs:
         docker build -t registry7401.azurecr.io/topicos-api-backend:${{ steps.vars.outputs.tag }} ./server
         docker push registry7401.azurecr.io/topicos-api-backend:${{ steps.vars.outputs.tag }}
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    environment: testaction
+  ################### No hay deploy en ACI por ahora, sin los permisos de la UTP para el Active Directory no se puede ###################
+  # deploy:
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   environment: testaction
 
-    steps:
-    - name: Login to Azure
-      env:
-        AZURE_TOKEN: ${{ secrets.AZURE_TOKEN }}
-      run: |
-        echo $AZURE_TOKEN > token.txt
-        az login --federated-token "$(cat token.txt)" --username ${{ env.AZURE_USERNAME }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+  #   steps:
+  #   - name: Login to Azure
+  #     env:
+  #       AZURE_TOKEN: ${{ secrets.AZURE_TOKEN }}
+  #     run: |
+  #       echo $AZURE_TOKEN > token.txt
+  #       az login --federated-token "$(cat token.txt)" --username ${{ env.AZURE_USERNAME }} --tenant ${{ secrets.AZURE_TENANT_ID }}
       
     # - name: Azure CLI Login
     #   run: |
@@ -68,14 +70,14 @@ jobs:
     #   with:
     #     creds: ${{ secrets.AZURE_CREDENTIALS }}  # JSON obtenido desde el portal de Azure
 
-    - name: Deploy to Azure Container Instance
-      uses: azure/aci-deploy@v1
-      with:
-        resource-group: your-resource-group
-        name: frontend-instance
-        image: registry7401.azurecr.io/topicos-api-frontend:${{ needs.build-and-push.outputs.tag }}
-        dns-name-label: frontend-instance
-        location: westus
-        registry-login-server: registry7401.azurecr.io
-        registry-username: registry7401
-        registry-password: ${{ secrets.ACR_PASSWORD }}
+    # - name: Deploy to Azure Container Instance
+    #   uses: azure/aci-deploy@v1
+    #   with:
+    #     resource-group: your-resource-group
+    #     name: frontend-instance
+    #     image: registry7401.azurecr.io/topicos-api-frontend:${{ needs.build-and-push.outputs.tag }}
+    #     dns-name-label: frontend-instance
+    #     location: westus
+    #     registry-login-server: registry7401.azurecr.io
+    #     registry-username: registry7401
+    #     registry-password: ${{ secrets.ACR_PASSWORD }}
