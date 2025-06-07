@@ -35,7 +35,7 @@ stages:
           - task: Docker@2
             displayName: Build and Push UI Image to ACR
             inputs:
-              containerRegistry: 'registry74001'  # Nombre del servicio de conexión a tu Azure Container Registry
+              containerRegistry: 'testconnection'  # Nombre del servicio de conexión a tu Azure Container Registry
               repository: '$(uiImageName)'        # Nombre del repositorio de la imagen en ACR
               command: 'buildAndPush'             # Construir y empujar la imagen
               Dockerfile: '**/client/Dockerfile'  # Ruta del Dockerfile del frontend
@@ -47,7 +47,7 @@ stages:
           - task: Docker@2
             displayName: Build and Push API Image to ACR
             inputs:
-              containerRegistry: 'registry74001'
+              containerRegistry: 'testconnection'
               repository: '$(apiImageName)'
               command: 'buildAndPush'
               Dockerfile: '**/server/Dockerfile'  # Ruta del Dockerfile del backend
