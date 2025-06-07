@@ -31,7 +31,7 @@ stages:
           - task: Docker@2
             displayName: Build and Push UI Image to ACR
             inputs:
-              containerRegistry: 'registry7401'
+              containerRegistry: 'registry74001'
               repository: '$(uiImageName)'
               command: 'buildAndPush'
               Dockerfile: '**/client/Dockerfile'
@@ -43,7 +43,7 @@ stages:
           - task: Docker@2
             displayName: Build and Push API Image to ACR
             inputs:
-              containerRegistry: 'registry7401'
+              containerRegistry: 'registry74001'
               repository: '$(apiImageName)'
               command: 'buildAndPush'
               Dockerfile: '**/server/Dockerfile'
