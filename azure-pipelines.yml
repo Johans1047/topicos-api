@@ -7,7 +7,9 @@
 trigger:
   - main  # O la rama que uses
 
-pool: my-computer
+# Define el pool con el agente self-hosted registrado en Azure DevOps
+pool: 
+  name: my-computer  # Asegúrate de que este sea el nombre del pool donde está registrado tu agente self-hosted
 
 # Define variables reutilizables
 variables:
@@ -19,27 +21,27 @@ stages:
   # Build de la app
   - stage: Build
     displayName: Build and Push Docker Image to the Azure Container Registry and Create an instance in the ACI
-    # Cada job es una unidad de trabajo que se ejecuta en un agente (puede ser un virtual machine)
+    # Cada job es una unidad de trabajo que se ejecuta en un agente (puede ser una máquina virtual o un agente self-hosted)
     jobs:
       - job: DockerBuildJob
         displayName: Build and Push
-        # Definir el tipo de agente
+        # Definir el pool del agente (en este caso, tu self-hosted)
         pool:
-          vmImage: 'ubuntu-latest'
+          name: my-computer  # Asegúrate de que el nombre coincida con el definido en Azure DevOps
 
-        # Permite definir task, script o templates
+        # Permite definir tasks, scripts o templates
         steps:
           # Construir y subir imagen FRONTEND
           - task: Docker@2
             displayName: Build and Push UI Image to ACR
             inputs:
-              containerRegistry: 'registry74001'
-              repository: '$(uiImageName)'
-              command: 'buildAndPush'
-              Dockerfile: '**/client/Dockerfile'
+              containerRegistry: 'registry74001'  # Nombre del servicio de conexión a tu Azure Container Registry
+              repository: '$(uiImageName)'        # Nombre del repositorio de la imagen en ACR
+              command: 'buildAndPush'             # Construir y empujar la imagen
+              Dockerfile: '**/client/Dockerfile'  # Ruta del Dockerfile del frontend
               tags: |
                 latest
-                $(Build.BuildId)
+                $(Build.BuildId)                  # Etiquetas de la imagen
 
           # Construir y subir imagen BACKEND
           - task: Docker@2
@@ -48,9 +50,7 @@ stages:
               containerRegistry: 'registry74001'
               repository: '$(apiImageName)'
               command: 'buildAndPush'
-              Dockerfile: '**/server/Dockerfile'
+              Dockerfile: '**/server/Dockerfile'  # Ruta del Dockerfile del backend
               tags: |
                 latest
                 $(Build.BuildId)
-
-
