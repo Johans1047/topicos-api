@@ -8,8 +8,8 @@ trigger:
   - main  # O la rama que uses
 
 # Define el pool con el agente self-hosted registrado en Azure DevOps
-pool: 
-  name: my-computer  # Asegúrate de que este sea el nombre del pool donde está registrado tu agente self-hosted
+pool: my-computer
+  #name: my-computer  # Asegúrate de que este sea el nombre del pool donde está registrado tu agente self-hosted
 
 # Define variables reutilizables
 variables:
