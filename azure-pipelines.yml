@@ -9,7 +9,7 @@ trigger:
 
 # Define el pool con el agente self-hosted registrado en Azure DevOps
 pool:
-  name: my-computer 
+  name: my-pool 
 
 # Define variables reutilizables
 variables:
@@ -38,7 +38,7 @@ stages:
         displayName: Build and Push
         # Definir el pool del agente (en este caso, tu self-hosted)
         pool:
-          name: my-computer
+          name: my-pool
 
         # Permite definir tasks, scripts o templates
         steps:
@@ -67,7 +67,7 @@ stages:
       - job: CreateContainerInstances
         displayName: Create container instances in the ACI
         pool:
-          name: my-computer 
+          name: my-pool 
         steps:
           - task: AzureCLI@2
             displayName: Deploy Frontend to Azure Container Instances
