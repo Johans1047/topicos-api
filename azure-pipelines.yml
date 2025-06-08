@@ -15,7 +15,8 @@ pool:
 variables:
   UI_IMAGE_NAME: topicos-api-frontend
   API_IMAGE_NAME: topicos-api-backend
-  IMAGE_TAG: latest 
+  IMAGE_TAG: latest
+  ACR_USERNAME: registry74001 
   ACR_NAME: registry74001.azurecr.io # Direaccion donde se encuentra el azure container registry
   ACR_CONNECTION_NAME: docker_connection # El nombre de la conexion al azure container registry
   AZURE_RESOURCE_CONNECTION: resource_connection # Una conexión de servicio azure resource creada en azure devops 
@@ -96,7 +97,7 @@ stages:
                   --image $(ACR_NAME)/$(UI_IMAGE_NAME):$(IMAGE_TAG) `
                   --cpu 1 --memory 1 `
                   --registry-login-server $(ACR_NAME) `
-                  --registry-username $acrUsername `
+                  --registry-username $(ACR_USERNAME) `
                   --registry-password $(ACR_PASSWORD) `
                   --ports $(UI_PORT) `
                   --dns-name-label $(DNS_NAME_LABEL_UI) `
