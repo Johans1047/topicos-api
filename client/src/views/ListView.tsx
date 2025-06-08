@@ -35,7 +35,8 @@ export default function ListView(): React.JSX.Element {
             }
             <div className="w-full max-w-5xl mx-auto p-4">
                 {/* <h1 className="text-3xl font-semibold my-4">Simple To-do App</h1> */}
-                <h1 className="text-3xl font-semibold my-4">This simple App has been changed</h1>
+                {/* <h1 className="text-3xl font-semibold my-4">This simple App has been changed</h1> */}
+                <h1 className="text-3xl font-semibold my-4">Hice un cambio en la aplicacion</h1>
                 <div className="overflow-x-auto rounded-box shadow-md bg-base-100 mb-6">
                     <table className="table">
                         <thead>
