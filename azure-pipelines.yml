@@ -41,7 +41,7 @@ stages:
               Dockerfile: '**/client/Dockerfile'  # Ruta del Dockerfile del frontend
               tags: |
                 latest
-                $(Build.BuildId)                  # Etiquetas de la imagen
+               ## $(Build.BuildId)                 
 
           # Construir y subir imagen BACKEND
           - task: Docker@2
@@ -53,4 +53,4 @@ stages:
               Dockerfile: '**/server/Dockerfile'  # Ruta del Dockerfile del backend
               tags: |
                 latest
-                $(Build.BuildId)
+              ##  $(Build.BuildId)
