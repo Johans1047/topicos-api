@@ -57,40 +57,40 @@ stages:
             displayName: Deploy Frontend to ACI
             inputs:
               azureSubscription: 'resourceconnection'
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
-                az container create \
-                  --name topicos-frontend-container \
-                  --resource-group testresource \
-                  --image registry74001.azurecr.io/$(uiImageName):latest \
-                  --cpu 1 --memory 1 \
-                  --registry-login-server registry74001.azurecr.io \
-                  --registry-username $(ACR_USERNAME) \
-                  --registry-password $(ACR_PASSWORD) \
-                  --ports 80 \
-                  --dns-name-label topicosui \
-                  --location westus \
-                  --os-type Linux \
+                az container create `
+                  --name topicos-frontend-container `
+                  --resource-group testresource `
+                  --image registry74001.azurecr.io/$(uiImageName):latest `
+                  --cpu 1 --memory 1 `
+                  --registry-login-server registry74001.azurecr.io `
+                  --registry-username $(ACR_USERNAME) `
+                  --registry-password $(ACR_PASSWORD) `
+                  --ports 80 `
+                  --dns-name-label topicosui `
+                  --location westus `
+                  --os-type Linux `
                   --restart-policy OnFailure
 
           - task: AzureCLI@2
             displayName: Deploy Backend to ACI
             inputs:
               azureSubscription: 'resourceconnection'
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
-                az container create \
-                  --name topicos-backend-container \
-                  --resource-group testresource \
-                  --image registry74001.azurecr.io/$(apiImageName):latest \
-                  --cpu 1 --memory 1.5 \
-                  --registry-login-server registry74001.azurecr.io \
-                  --registry-username $(ACR_USERNAME) \
-                  --registry-password $(ACR_PASSWORD) \
-                  --ports 3000 \
-                  --dns-name-label topicosapi \
-                  --location westus \
-                  --os-type Linux \
-                  --restart-policy OnFailure\
+                az container create `
+                  --name topicos-backend-container `
+                  --resource-group testresource `
+                  --image registry74001.azurecr.io/$(apiImageName):latest `
+                  --cpu 1 --memory 1.5 `
+                  --registry-login-server registry74001.azurecr.io `
+                  --registry-username $(ACR_USERNAME) `
+                  --registry-password $(ACR_PASSWORD) `
+                  --ports 3000 `
+                  --dns-name-label topicosapi `
+                  --location westus `
+                  --os-type Linux `
+                  --restart-policy OnFailure
