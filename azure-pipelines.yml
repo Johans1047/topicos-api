@@ -39,8 +39,7 @@ stages:
               repository: '$(uiImageName)'        # Nombre del repositorio de la imagen en ACR
               command: 'buildAndPush'             # Construir y empujar la imagen
               Dockerfile: '**/client/Dockerfile'  # Ruta del Dockerfile del frontend
-              tags: |
-                latest
+              tags: 'latest'
                ## $(Build.BuildId)                 
 
           # Construir y subir imagen BACKEND
@@ -51,6 +50,5 @@ stages:
               repository: '$(apiImageName)'
               command: 'buildAndPush'
               Dockerfile: '**/server/Dockerfile'  # Ruta del Dockerfile del backend
-              tags: |
-                latest
+              tags: 'latest'
               ##  $(Build.BuildId)
