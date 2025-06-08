@@ -15,8 +15,7 @@ pool:
 variables:
   UI_IMAGE_NAME: topicos-api-frontend
   API_IMAGE_NAME: topicos-api-backend
-  IMAGE_TAG: latest
-  ACR_USERNAME: registry74001 
+  IMAGE_TAG: latest 
   ACR_NAME: registry74001.azurecr.io # Direaccion donde se encuentra el azure container registry
   ACR_CONNECTION_NAME: docker_connection # El nombre de la conexion al azure container registry
   AZURE_RESOURCE_CONNECTION: resource_connection # Una conexión de servicio azure resource creada en azure devops 
@@ -80,9 +79,11 @@ stages:
                 # Obtener nombre corto del ACR (antes del primer punto)
                 $acrUsername = "$(ACR_NAME)".Split('.')[0]
 
-                # Obtener usuario y contraseña del ACR (devuelve dos líneas: username y password)
-                # $acrCreds = az acr credential show --name $acrName --query "[username, passwords[0].value]" -o tsv
-                # $acrUsername, $acrPassword = $acrCreds -split "`n"
+                # Obtener usuario y contraseña del ACR
+                $creds = az acr credential show --name $acrUsername --query "[username, passwords[0].value]" -o tsv
+                $acrUser, $acrPassword = $creds -split "`n"
+
+                Write-Host "Desplegando contenedor frontend..."
 
                 # Eliminar el contenedor si existe
                 az container delete `
@@ -90,17 +91,17 @@ stages:
                   --resource-group $(RESOURCE_GROUP) `
                   --yes
 
-                # Crear el contenedor con credenciales para el registro privado
+                # Crear el contenedor con credenciales para el ACR privado
                 az container create `
                   --name $(CONTAINER_UI_GROUP_NAME) `
                   --resource-group $(RESOURCE_GROUP) `
                   --image $(ACR_NAME)/$(UI_IMAGE_NAME):$(IMAGE_TAG) `
                   --cpu 1 --memory 1 `
                   --registry-login-server $(ACR_NAME) `
-                  --registry-username $(ACR_USERNAME) `
-                  --registry-password $(ACR_PASSWORD) `
+                  --registry-username $acrUser `
+                  --registry-password $acrPassword `
                   --ports $(UI_PORT) `
                   --dns-name-label $(DNS_NAME_LABEL_UI) `
                   --location westus `
                   --os-type Linux `
-                  --restart-policy OnFailure 
+                  --restart-policy OnFailure
