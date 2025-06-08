@@ -5,16 +5,27 @@
 
 # Define en qué ramas se ejecuta automáticamente el pipeline
 trigger:
-  - main  # O la rama que uses
+  - main
 
 # Define el pool con el agente self-hosted registrado en Azure DevOps
 pool:
-  name: my-computer  # Asegúrate de que este sea el nombre del pool donde está registrado tu agente self-hosted
+  name: my-computer 
 
 # Define variables reutilizables
 variables:
-  uiImageName: topicos-api-frontend
-  apiImageName: topicos-api-backend
+  UI_IMAGE_NAME: topicos-api-frontend
+  API_IMAGE_NAME: topicos-api-backend
+  IMAGE_TAG: latest 
+  ACR_NAME: registry74001.azurecr.io # Direaccion donde se encuentra el azure container registry
+  ACR_CONNECTION_NAME: docker_connection # El nombre de la conexion al azure container registry
+  AZURE_RESOURCE_CONNECTION: resource_connection # Una conexión de servicio azure resource creada en azure devops 
+  CONTAINER_API_GROUP_NAME: topicos-backend-container # El nombre del contenedor sobre el cual se tiene el deploy
+  CONTAINER_UI_GROUP_NAME: topicos-frontend-container # El nombre del contenedor sobre el cual se tiene el deploy
+  RESOURCE_GROUP: testresource # El nombre de el grupo de recursos donde se crea el container
+  DNS_NAME_LABEL_API: topicosapi 
+  DNS_NAME_LABEL_UI: topicosui 
+  UI_PORT: 80
+  API_PORT: 3000
 
 # Organizar el pipeline en distintas etapas
 stages:
@@ -27,7 +38,7 @@ stages:
         displayName: Build and Push
         # Definir el pool del agente (en este caso, tu self-hosted)
         pool:
-          name: my-computer  # Asegúrate de que el nombre coincida con el definido en Azure DevOps
+          name: my-computer
 
         # Permite definir tasks, scripts o templates
         steps:
@@ -35,62 +46,60 @@ stages:
           - task: Docker@2
             displayName: Build and Push UI Image to ACR
             inputs:
-              containerRegistry: 'dockerconnection'  # Nombre del servicio de conexión a tu Azure Container Registry
-              repository: '$(uiImageName)'        # Nombre del repositorio de la imagen en ACR
-              command: 'buildAndPush'             # Construir y empujar la imagen
+              containerRegistry: $(ACR_CONNECTION_NAME)  # Nombre del servicio de conexión a tu Azure Container Registry
+              repository: '$(UI_IMAGE_NAME)'        # Nombre del repositorio de la imagen en ACR
+              command: 'buildAndPush'             
               Dockerfile: '**/client/Dockerfile'  # Ruta del Dockerfile del frontend
-              tags: 'latest'
+              tags: $(IMAGE_TAG)
                ## $(Build.BuildId)                 
 
           # Construir y subir imagen BACKEND
           - task: Docker@2
             displayName: Build and Push API Image to ACR
             inputs:
-              containerRegistry: 'dockerconnection'
-              repository: '$(apiImageName)'
+              containerRegistry: $(ACR_CONNECTION_NAME)
+              repository: '$(API_IMAGE_NAME)'
               command: 'buildAndPush'
               Dockerfile: '**/server/Dockerfile'  # Ruta del Dockerfile del backend
-              tags: 'latest'
+              tags: $(IMAGE_TAG)
               ##  $(Build.BuildId)
-          
-          - task: AzureCLI@2
-            displayName: Deploy Frontend to ACI
-            inputs:
-              azureSubscription: 'resourceconnection'
-              scriptType: ps
-              scriptLocation: inlineScript
-              inlineScript: |
-                az container create `
-                  --name topicos-frontend-container `
-                  --resource-group testresource `
-                  --image registry74001.azurecr.io/$(uiImageName):latest `
-                  --cpu 1 --memory 1 `
-                  --registry-login-server registry74001.azurecr.io `
-                  --registry-username $(ACR_USERNAME) `
-                  --registry-password $(ACR_PASSWORD) `
-                  --ports 80 `
-                  --dns-name-label topicosui `
-                  --location westus `
-                  --os-type Linux `
-                  --restart-policy OnFailure
 
+      - job: CreateContainerInstances
+        displayName: Create container instances in the ACI
+        pool:
+          name: my-computer 
+        steps:
           - task: AzureCLI@2
-            displayName: Deploy Backend to ACI
+            displayName: Deploy Frontend to Azure Container Instances
             inputs:
-              azureSubscription: 'resourceconnection'
+              azureSubscription: $(AZURE_RESOURCE_CONNECTION)
               scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
+                # Obtener nombre corto del ACR (antes del primer punto)
+                $acrName = "$(ACR_NAME)".Split('.')[0]
+
+                # Obtener usuario y contraseña del ACR (devuelve dos líneas: username y password)
+                $acrCreds = az acr credential show --name $acrName --query "[username, passwords[0].value]" -o tsv
+                $acrUsername, $acrPassword = $acrCreds -split "`n"
+
+                # Eliminar el contenedor si existe
+                az container delete `
+                  --name $(CONTAINER_UI_GROUP_NAME) `
+                  --resource-group $(RESOURCE_GROUP) `
+                  --yes
+
+                # Crear el contenedor con credenciales para el registro privado
                 az container create `
-                  --name topicos-backend-container `
-                  --resource-group testresource `
-                  --image registry74001.azurecr.io/$(apiImageName):latest `
-                  --cpu 1 --memory 1.5 `
-                  --registry-login-server registry74001.azurecr.io `
-                  --registry-username $(ACR_USERNAME) `
-                  --registry-password $(ACR_PASSWORD) `
-                  --ports 3000 `
-                  --dns-name-label topicosapi `
+                  --name $(CONTAINER_UI_GROUP_NAME) `
+                  --resource-group $(RESOURCE_GROUP) `
+                  --image $(ACR_NAME)/$(UI_IMAGE_NAME):$(IMAGE_TAG) `
+                  --cpu 1 --memory 1 `
+                  --registry-login-server $(ACR_NAME) `
+                  --registry-username $acrUsername `
+                  --registry-password $acrPassword `
+                  --ports $(UI_PORT) `
+                  --dns-name-label $(DNS_NAME_LABEL_UI) `
                   --location westus `
                   --os-type Linux `
-                  --restart-policy OnFailure
+                  --restart-policy OnFailure 
