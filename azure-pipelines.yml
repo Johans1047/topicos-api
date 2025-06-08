@@ -98,7 +98,7 @@ stages:
                   --image $(ACR_NAME)/$(UI_IMAGE_NAME):$(IMAGE_TAG) `
                   --cpu 1 --memory 1 `
                   --registry-login-server $(ACR_NAME) `
-                  --registry-username $acrUser `
+                  --registry-username registry74001 `
                   --registry-password $acrPassword `
                   --ports $(UI_PORT) `
                   --dns-name-label $(DNS_NAME_LABEL_UI) `
