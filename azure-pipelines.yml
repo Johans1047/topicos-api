@@ -84,9 +84,14 @@ stages:
                 #$acrCreds = az acr credential show --name $acrName --query "[username, passwords[0].value]" -o tsv
                 #$acrUsername, $acrPassword = $acrCreds -split "`n"}
 
-                $acrCreds = az acr credential show --name $acrName | ConvertFrom-Json
-                $acrUsername = $acrCreds.username
-                $acrPassword = $acrCreds.passwords[0].value
+                # Nombre corto del ACR
+                $acrName = "$(ACR_NAME)".Split('.')[0]
+
+                # Obtener el username
+                $acrUsername = az acr credential show --name $acrName --query "username" -o tsv
+
+                # Obtener el password (primera entrada del array passwords)
+                $acrPassword = az acr credential show --name $acrName --query "passwords[0].value" -o tsv
 
                 # Eliminar el contenedor si existe
                 az container delete `
