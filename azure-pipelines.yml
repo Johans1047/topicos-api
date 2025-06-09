@@ -96,8 +96,8 @@ stages:
                   --resource-group $(RESOURCE_GROUP) `
                   --image $(ACR_NAME)/$(UI_IMAGE_NAME):$(IMAGE_TAG) `
                   --cpu 1 --memory 1 `
-                  --registry-login-server registry74001.azurecr.io `
-                  --registry-username registry74001 `
+                  --registry-login-server $acrName `
+                  --registry-username $acrUsername `
                   --registry-password $acrPassword `
                   --ports $(UI_PORT) `
                   --dns-name-label $(DNS_NAME_LABEL_UI) `
