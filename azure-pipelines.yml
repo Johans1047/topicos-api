@@ -96,9 +96,6 @@ stages:
                   --image $(ACR_NAME)/$(UI_IMAGE_NAME):$(IMAGE_TAG) `
                   --cpu 1 --memory 1 `
                   --assign-identity `
-                  # --registry-login-server $(ACR_NAME) `
-                  # --registry-username $(ACR_USERNAME) `
-                  # --registry-password $(ACR_PASSWORD) `
                   --ports $(UI_PORT) `
                   --dns-name-label $(DNS_NAME_LABEL_UI) `
                   --location westus `
