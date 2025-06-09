@@ -16,7 +16,6 @@ variables:
   UI_IMAGE_NAME: topicos-api-frontend
   API_IMAGE_NAME: topicos-api-backend
   IMAGE_TAG: latest 
-  ACR_USERNAME: registry74001
   ACR_NAME: registry74001.azurecr.io # Direaccion donde se encuentra el azure container registry
   ACR_CONNECTION_NAME: docker_connection # El nombre de la conexion al azure container registry
   AZURE_RESOURCE_CONNECTION: resource_connection # Una conexión de servicio azure resource creada en azure devops 
@@ -66,6 +65,7 @@ stages:
               ##  $(Build.BuildId)
 
       - job: CreateContainerInstances
+        dependsOn: DockerBuildJob
         displayName: Create container instances in the ACI
         pool:
           name: my-pool 
@@ -78,11 +78,11 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 # Obtener nombre corto del ACR (antes del primer punto)
-                # $acrName = "$(ACR_NAME)".Split('.')[0]
+                $acrName = "$(ACR_NAME)".Split('.')[0]
 
                 # Obtener usuario y contraseña del ACR (devuelve dos líneas: username y password)
-                # $acrCreds = az acr credential show --name $acrName --query "[username, passwords[0].value]" -o tsv
-                # $acrUsername, $acrPassword = $acrCreds -split "`n"
+                $acrCreds = az acr credential show --name $acrName --query "[username, passwords[0].value]" -o tsv
+                $acrUsername, $acrPassword = $acrCreds -split "`n"
 
                 # Eliminar el contenedor si existe
                 az container delete `
@@ -96,9 +96,9 @@ stages:
                   --resource-group $(RESOURCE_GROUP) `
                   --image $(ACR_NAME)/$(UI_IMAGE_NAME):$(IMAGE_TAG) `
                   --cpu 1 --memory 1 `
-                  --registry-login-server $(ACR_NAME) `
-                  --registry-username $(ACR_USERNAME) `
-                  --registry-password $(ACR_PASSWORD) `
+                  --registry-login-server $acrName `
+                  --registry-username $acrUsername `
+                  --registry-password $acrPassword `
                   --ports $(UI_PORT) `
                   --dns-name-label $(DNS_NAME_LABEL_UI) `
                   --location westus `
