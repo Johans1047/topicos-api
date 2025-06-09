@@ -75,46 +75,46 @@ stages:
             displayName: Create User Assigned Identity
             inputs:
               azureSubscription: $(AZURE_RESOURCE_CONNECTION)
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
-                az identity create \
-                  --name aci-identity \
-                  --resource-group $(RESOURCE_GROUP) \
+                az identity create `
+                  --name aci-identity `
+                  --resource-group $(RESOURCE_GROUP) `
                   --location westus
 
           - task: AzureCLI@2
             displayName: Assign AcrPull role to identity
             inputs:
               azureSubscription: $(AZURE_RESOURCE_CONNECTION)
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
                 IDENTITY_ID=$(az identity show --name aci-identity --resource-group $(RESOURCE_GROUP) --query 'principalId' -o tsv)
                 ACR_ID=$(az acr show --name $(ACR_USERNAME) --resource-group $(RESOURCE_GROUP) --query 'id' -o tsv)
 
-                az role assignment create \
-                  --assignee $IDENTITY_ID \
-                  --scope $ACR_ID \
+                az role assignment create `
+                  --assignee $IDENTITY_ID `
+                  --scope $ACR_ID `
                   --role AcrPull
         
           - task: AzureCLI@2
             displayName: Deploy Frontend to Azure Container Instances with Managed Identity
             inputs:
               azureSubscription: $(AZURE_RESOURCE_CONNECTION)
-              scriptType: bash
+              scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
                 IDENTITY_ID=$(az identity show --name aci-identity --resource-group $(RESOURCE_GROUP) --query 'id' -o tsv)
 
-                az container create \
-                  --name $(CONTAINER_UI_GROUP_NAME) \
-                  --resource-group $(RESOURCE_GROUP) \
-                  --image $(ACR_NAME)/$(UI_IMAGE_NAME):$(IMAGE_TAG) \
-                  --cpu 1 --memory 1 \
-                  --assign-identity $IDENTITY_ID \
-                  --ports $(UI_PORT) \
-                  --dns-name-label $(DNS_NAME_LABEL_UI) \
-                  --location westus \
-                  --os-type Linux \
+                az container create `
+                  --name $(CONTAINER_UI_GROUP_NAME) `
+                  --resource-group $(RESOURCE_GROUP) `
+                  --image $(ACR_NAME)/$(UI_IMAGE_NAME):$(IMAGE_TAG) `
+                  --cpu 1 --memory 1 `
+                  --assign-identity $IDENTITY_ID `
+                  --ports $(UI_PORT) `
+                  --dns-name-label $(DNS_NAME_LABEL_UI) `
+                  --location westus `
+                  --os-type Linux `
                   --restart-policy OnFailure
