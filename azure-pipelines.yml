@@ -65,56 +65,41 @@ stages:
               ##  $(Build.BuildId)
 
       - job: CreateContainerInstances
-        dependsOn: DockerBuildJob
         displayName: Create container instances in the ACI
         pool:
           name: my-pool 
         steps:
-
           - task: AzureCLI@2
-            displayName: Create User Assigned Identity
+            displayName: Deploy Frontend to Azure Container Instances
             inputs:
               azureSubscription: $(AZURE_RESOURCE_CONNECTION)
               scriptType: ps
               scriptLocation: inlineScript
               inlineScript: |
-                az identity create `
-                  --name aci-identity `
+                # Obtener nombre corto del ACR (antes del primer punto)
+                # $acrName = "$(ACR_NAME)".Split('.')[0]
+
+                # Obtener usuario y contraseña del ACR (devuelve dos líneas: username y password)
+                # $acrCreds = az acr credential show --name $acrName --query "[username, passwords[0].value]" -o tsv
+                # $acrUsername, $acrPassword = $acrCreds -split "`n"
+
+                # Eliminar el contenedor si existe
+                az container delete `
+                  --name $(CONTAINER_UI_GROUP_NAME) `
                   --resource-group $(RESOURCE_GROUP) `
-                  --location westus
+                  --yes
 
-          - task: AzureCLI@2
-            displayName: Assign AcrPull role to identity
-            inputs:
-              azureSubscription: $(AZURE_RESOURCE_CONNECTION)
-              scriptType: ps
-              scriptLocation: inlineScript
-              inlineScript: |
-                IDENTITY_ID=$(az identity show --name aci-identity --resource-group $(RESOURCE_GROUP) --query 'principalId' -o tsv)
-                ACR_ID=$(az acr show --name $(ACR_USERNAME) --resource-group $(RESOURCE_GROUP) --query 'id' -o tsv)
-
-                az role assignment create `
-                  --assignee $IDENTITY_ID `
-                  --scope $ACR_ID `
-                  --role AcrPull
-        
-          - task: AzureCLI@2
-            displayName: Deploy Frontend to Azure Container Instances with Managed Identity
-            inputs:
-              azureSubscription: $(AZURE_RESOURCE_CONNECTION)
-              scriptType: ps
-              scriptLocation: inlineScript
-              inlineScript: |
-                IDENTITY_ID=$(az identity show --name aci-identity --resource-group $(RESOURCE_GROUP) --query 'id' -o tsv)
-
+                # Crear el contenedor con credenciales para el registro privado
                 az container create `
                   --name $(CONTAINER_UI_GROUP_NAME) `
                   --resource-group $(RESOURCE_GROUP) `
                   --image $(ACR_NAME)/$(UI_IMAGE_NAME):$(IMAGE_TAG) `
                   --cpu 1 --memory 1 `
-                  --assign-identity $IDENTITY_ID `
+                  --registry-login-server $(ACR_NAME) `
+                  --registry-username $(ACR_USERNAME) `
+                  --registry-password $(ACR_PASSWORD) `
                   --ports $(UI_PORT) `
                   --dns-name-label $(DNS_NAME_LABEL_UI) `
                   --location westus `
                   --os-type Linux `
-                  --restart-policy OnFailure
+                  --restart-policy OnFailure 
